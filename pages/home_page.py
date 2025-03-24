@@ -6,13 +6,11 @@ class HomePage(ctk.CTkFrame):
         super().__init__(parent)
         self.controller = controller
         
-        # Configure main frame
         self.configure(fg_color=["#1a1a1a", "#1a1a1a"])
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=0)  # Header
-        self.grid_rowconfigure(1, weight=1)  # Content area
+        self.grid_rowconfigure(0, weight=0) 
+        self.grid_rowconfigure(1, weight=1) 
         
-        # Create header frame
         self.header_frame = ctk.CTkFrame(
             self, 
             fg_color=["#2b2b2b", "#2b2b2b"],
@@ -21,8 +19,7 @@ class HomePage(ctk.CTkFrame):
         )
         self.header_frame.grid(row=0, column=0, sticky="ew")
         self.header_frame.grid_columnconfigure(0, weight=1)
-        
-        # Title
+
         self.header_label = ctk.CTkLabel(
             self.header_frame, 
             text="Debate Simulator", 
@@ -30,8 +27,7 @@ class HomePage(ctk.CTkFrame):
             text_color=["#ffffff", "#ffffff"]
         )
         self.header_label.grid(row=0, column=0, pady=20, padx=20)
-        
-        # Content container
+
         self.content_frame = ctk.CTkFrame(
             self,
             fg_color=["#242424", "#242424"],
@@ -40,8 +36,7 @@ class HomePage(ctk.CTkFrame):
         self.content_frame.grid(row=1, column=0, pady=40, padx=40, sticky="nsew")
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_rowconfigure((0, 1, 2), weight=1)
-        
-        # Welcome text
+
         self.welcome_label = ctk.CTkLabel(
             self.content_frame, 
             text="Who would you like to debate against?",
@@ -49,8 +44,7 @@ class HomePage(ctk.CTkFrame):
             text_color=["#ffffff", "#ffffff"]
         )
         self.welcome_label.grid(row=0, column=0, pady=(40, 20), padx=20)
-        
-        # Enhanced entry field
+
         self.entry = ctk.CTkEntry(
             self.content_frame,
             placeholder_text="Enter opponent name...",
@@ -64,7 +58,6 @@ class HomePage(ctk.CTkFrame):
         )
         self.entry.grid(row=1, column=0, pady=20, padx=20)
         
-        # Start debate button
         self.start_button = ctk.CTkButton(
             self.content_frame,
             text="Start Debate ➤",
@@ -77,8 +70,7 @@ class HomePage(ctk.CTkFrame):
             command=self.start_debate
         )
         self.start_button.grid(row=2, column=0, pady=(20, 40), padx=20)
-        
-        # Bind Enter key to start debate
+
         self.entry.bind("<Return>", lambda event: self.start_debate())
     
     def start_debate(self):
