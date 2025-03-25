@@ -14,26 +14,99 @@ class DebatePage(ctk.CTkFrame):
         globals.chat_messages.append(
             globals.create_message(system_message, 'system')
         )
+        
+        # Configure main frame
+        self.configure(fg_color=["#1a1a1a", "#1a1a1a"])
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=0)
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_rowconfigure(2, weight=0)
-        self.grid_rowconfigure(3, weight=0)
+        self.grid_rowconfigure(0, weight=0)  # Header
+        self.grid_rowconfigure(1, weight=1)  # Chat area
+        self.grid_rowconfigure(2, weight=0)  # Input area
         
-        self.label = ctk.CTkLabel(self, text=f"Debate Room - {self.debate_opponent}", font=("Arial", 30))
-        self.label.grid(row=0, column=0, pady=10, padx=10, sticky="nsew")
+        # Create header frame
+        self.header_frame = ctk.CTkFrame(
+            self, 
+            fg_color=["#2b2b2b", "#2b2b2b"],
+            corner_radius=0,
+            height=80
+        )
+        self.header_frame.grid(row=0, column=0, sticky="ew")
+        self.header_frame.grid_columnconfigure(1, weight=1)
         
-        self.chat_frame = ctk.CTkScrollableFrame(self)
-        self.chat_frame.grid(row=1, column=0, pady=10, padx=10, sticky="nsew")
+        # Title with better styling
+        self.label = ctk.CTkLabel(
+            self.header_frame, 
+            text=f"Debate Room - {self.debate_opponent}", 
+            font=("Helvetica", 32, "bold"),
+            text_color=["#ffffff", "#ffffff"]
+        )
+        self.label.grid(row=0, column=1, pady=20, padx=20, sticky="w")
+        
+        # Home button with styling
+        self.back_button = ctk.CTkButton(
+            self.header_frame,
+            text="🏠 Home",
+            width=120,
+            height=40,
+            corner_radius=10,
+            font=("Helvetica", 14, "bold"),
+            fg_color=["#3a7a33", "#3a7a33"],
+            hover_color=["#2d5a27", "#2d5a27"],
+            command=self.go_to_home
+        )
+        self.back_button.grid(row=0, column=2, pady=20, padx=20, sticky="e")
+        
+        # Chat area
+        self.chat_frame = ctk.CTkScrollableFrame(
+            self,
+            fg_color=["#242424", "#242424"],
+            corner_radius=15
+        )
+        self.chat_frame.grid(row=1, column=0, pady=(10, 5), padx=20, sticky="nsew")
         self.chat_frame.grid_columnconfigure(0, weight=1)
-        self.chat_frame.grid_rowconfigure(0, weight=1)
         
-        self.entry = ctk.CTkEntry(self, placeholder_text="Enter your argument")
-        self.entry.grid(row=2, column=0, pady=5, padx=10, sticky="ew")
+        # Input area frame
+        self.input_frame = ctk.CTkFrame(
+            self, 
+            fg_color=["#2b2b2b", "#2b2b2b"],
+            corner_radius=15
+        )
+        self.input_frame.grid(row=2, column=0, pady=(5, 20), padx=20, sticky="ew")
+        self.input_frame.grid_columnconfigure(0, weight=1)
         
-        self.submit_button = ctk.CTkButton(self, text="Send", command=self.send_message)
-        self.submit_button.grid(row=3, column=0, pady=10, padx=10, sticky="ew")
-    
+        # Entry field
+        self.entry = ctk.CTkEntry(
+            self.input_frame,
+            placeholder_text="Type your argument here...",
+            height=45,
+            font=("Helvetica", 14),
+            corner_radius=10,
+            fg_color=["#333333", "#333333"],
+            border_color=["#3a7a33", "#3a7a33"],
+            border_width=2
+        )
+        self.entry.grid(row=0, column=0, pady=15, padx=(15, 10), sticky="ew")
+        
+        # Submit button
+        self.submit_button = ctk.CTkButton(
+            self.input_frame,
+            text="Send",
+            width=100,
+            height=45,
+            corner_radius=10,
+            font=("Helvetica", 14, "bold"),
+            fg_color=["#3a7a33", "#3a7a33"],
+            hover_color=["#2d5a27", "#2d5a27"],
+            command=self.send_message
+        )
+        self.submit_button.grid(row=0, column=1, pady=15, padx=(0, 15))
+        
+        # Bind Enter key
+        self.entry.bind("<Return>", lambda event: self.send_message())
+
+    def go_to_home(self):
+        globals.chat_messages.clear()
+        self.controller.show_frame(self.controller.frames["HomePage"])
+
     def send_message(self):
         user_text = self.entry.get()
         if user_text:
@@ -41,7 +114,6 @@ class DebatePage(ctk.CTkFrame):
             chat_bubble.pack(anchor="e", fill="y", expand=True, padx=10, pady=5)
             self.entry.delete(0, ctk.END)
             globals.ask(user_text)
-            # Start a new thread to fetch the response asynchronously
             threading.Thread(target=self.fetch_opponent_response, args=(user_text,), daemon=True).start()
 
     def fetch_opponent_response(self, user_text):
@@ -56,12 +128,11 @@ class DebatePage(ctk.CTkFrame):
         judge_bubble.pack(anchor="w", fill="y", expand=True, padx=10, pady=5)
         response_text = ""
         judge_text = ""
-        print(globals.chat_messages)
+        
         ollama_session = ollama.chat(model="llama2-uncensored", messages=globals.chat_messages, stream=True)
-        print("In ollama session")
-        judge_session = ollama.chat(model="sadiq-bd/llama3.2-1b-uncensored", messages=[{"role": "system", "content": f"You are an impartial debate judge who evaluates arguments objectively. Your task is to provide brief, constructive feedback (2-3 sentences) on how the argument could be improved. The user is currently debating against {self.debate_opponent}. Stay neutral and avoid taking a stance. Identify logical strengths and weaknesses concisely. Point out any logical fallacies in a single sentence if present. Suggest 1-2 quick improvements without changing the user’s stance. Keep your response to 2-3 lines only for clarity. "},
+        judge_session = ollama.chat(model="sadiq-bd/llama3.2-1b-uncensored", messages=[{"role": "system", "content": f"You are an impartial debate judge who evaluates arguments objectively. Your task is to provide brief, constructive feedback (2-3 sentences) on how the argument could be improved. The user is currently debating against {self.debate_opponent}. Stay neutral and avoid taking a stance. Identify logical strengths and weaknesses concisely. Point out any logical fallacies in a single sentence if present. Suggest 1-2 quick improvements without changing the user's stance. Keep your response to 2-3 lines only for clarity. "},
                                                                    {"role": "user", "content": user_text}], stream=True)
-        print("In judge session")
+
         for chunk in ollama_session:
             response_text += chunk["message"]["content"]
             chat_bubble.update_text(response_text)
@@ -69,8 +140,7 @@ class DebatePage(ctk.CTkFrame):
         for chunk in judge_session:
             judge_text += chunk["message"]["content"]
             judge_bubble.update_text(judge_text)
-
         
-        chat_bubble.update_text(response_text)  # Ensure the final text is set
+        chat_bubble.update_text(response_text)
         judge_bubble.update_text(judge_text)
         globals.respond(response_text)

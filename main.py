@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from pages.home_page import HomePage
+from pages.debate_page import DebatePage
 
 ctk.set_default_color_theme("themes/dark-blue.json")
 
@@ -17,14 +18,14 @@ class DebateSimulatorApp(ctk.CTk):
         self.container.grid_rowconfigure(0, weight=1)
         
         self.frames = {}
+        # Store the frame classes
+        self.frames["HomePage"] = HomePage
+        self.frames["DebatePage"] = DebatePage
+        
         self.show_frame(HomePage)
     
     def show_frame(self, page, *args):
-        if page in self.frames:
-            frame = self.frames[page]
-            frame.destroy()
         frame = page(self.container, self, *args)
-        self.frames[page] = frame
         frame.grid(row=0, column=0, sticky="nsew")
         frame.tkraise()
 
