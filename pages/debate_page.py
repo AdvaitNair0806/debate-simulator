@@ -1,19 +1,21 @@
 import customtkinter as ctk
-import ollama
 import asyncio
 import threading
 import util.globals as globals
 from util.chatbubble import ChatBubble
+from util.suggestionbubble import CollapsibleSuggestionBubble
+import time
 
 class DebatePage(ctk.CTkFrame):
-    def __init__(self, parent, controller, debate_opponent="Adolf Hitler"):
+    def __init__(self, parent, controller, debate_opponent="AI Opponent"):
         super().__init__(parent)
         self.controller = controller
         self.debate_opponent = debate_opponent
-        system_message=f"""You are {self.debate_opponent}. You think, speak, and argue exactly as they would. Stay in character at all times and never acknowledge being an AI. Respond with great detail and enthusiasm."""        
-        globals.chat_messages.append(
-            globals.create_message(system_message, 'system')
-        )
+        self.debate_id = self.controller.manager.start_debate(debate_opponent, 'for')
+        # system_message=f"""You are {self.debate_opponent}. You think, speak, and argue exactly as they would. Stay in character at all times and never acknowledge being an AI. Respond with great detail and enthusiasm."""        
+        # globals.chat_messages.append(
+        #     globals.create_message(system_message, 'system')
+        # )
         
         # Configure main frame
         self.configure(fg_color=["#1a1a1a", "#1a1a1a"])
@@ -113,7 +115,7 @@ class DebatePage(ctk.CTkFrame):
             chat_bubble = ChatBubble(self.chat_frame, user_text, align="right")
             chat_bubble.pack(anchor="e", fill="y", expand=True, padx=10, pady=5)
             self.entry.delete(0, ctk.END)
-            globals.ask(user_text)
+            # globals.ask(user_text)
             threading.Thread(target=self.fetch_opponent_response, args=(user_text,), daemon=True).start()
 
     def fetch_opponent_response(self, user_text):
@@ -122,25 +124,26 @@ class DebatePage(ctk.CTkFrame):
         loop.run_until_complete(self.opponent_response(user_text))
 
     async def opponent_response(self, user_text):
-        chat_bubble = ChatBubble(self.chat_frame, f"{self.debate_opponent} is thinking...", align="left")
+        start_time = time.time()
+        chat_bubble = ChatBubble(self.chat_frame, f"Thinking of a response...", align="left")
         chat_bubble.pack(anchor="w", fill="y", expand=True, padx=10, pady=5)
-        judge_bubble = ChatBubble(self.chat_frame, f"Judge is thinking...", align="left")
-        judge_bubble.pack(anchor="w", fill="y", expand=True, padx=10, pady=5)
-        response_text = ""
-        judge_text = ""
-        
-        ollama_session = ollama.chat(model="llama2-uncensored", messages=globals.chat_messages, stream=True)
-        judge_session = ollama.chat(model="sadiq-bd/llama3.2-1b-uncensored", messages=[{"role": "system", "content": f"You are an impartial debate judge who evaluates arguments objectively. Your task is to provide brief, constructive feedback (2-3 sentences) on how the argument could be improved. The user is currently debating against {self.debate_opponent}. Stay neutral and avoid taking a stance. Identify logical strengths and weaknesses concisely. Point out any logical fallacies in a single sentence if present. Suggest 1-2 quick improvements without changing the user's stance. Keep your response to 2-3 lines only for clarity. "},
-                                                                   {"role": "user", "content": user_text}], stream=True)
+        suggestion_bubble = CollapsibleSuggestionBubble(self.chat_frame, "Analyzing argument...")
+        suggestion_bubble.pack(anchor="w", fill="y", expand=True, padx=10, pady=5)
 
-        for chunk in ollama_session:
-            response_text += chunk["message"]["content"]
-            chat_bubble.update_text(response_text)
-
-        for chunk in judge_session:
-            judge_text += chunk["message"]["content"]
-            judge_bubble.update_text(judge_text)
+        print("Thinking...")
+        self.response = self.controller.manager.process_argument(self.debate_id, user_text)
+        print(self.response)
         
-        chat_bubble.update_text(response_text)
-        judge_bubble.update_text(judge_text)
-        globals.respond(response_text)
+        chat_bubble.update_text(self.response["ai_argument"])
+        suggestion_bubble.update_text(self.response["evaluation_feedback"])
+        end_time = time.time()
+        time_taken = round(end_time - start_time, 2)
+
+        thought_time_label = ctk.CTkLabel(
+            self.chat_frame, 
+            text=f"🤔 Thought for {time_taken} seconds", 
+            font=("Helvetica", 12, "italic"),
+            text_color=["#aaaaaa", "#aaaaaa"]
+        )
+        thought_time_label.pack(anchor="w", padx=10, pady=5)
+        # globals.respond(response_text)
