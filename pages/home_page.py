@@ -34,7 +34,7 @@ class HomePage(ctk.CTkFrame):
 
         self.welcome_label = ctk.CTkLabel(
             self.content_frame, 
-            text="Who would you like to debate against?",
+            text="What would you like to debate?",
             font=("Helvetica", 24),
             text_color=["#ffffff", "#ffffff"]
         )
@@ -42,7 +42,7 @@ class HomePage(ctk.CTkFrame):
 
         self.entry = ctk.CTkEntry(
             self.content_frame,
-            placeholder_text="Enter opponent name...",
+            placeholder_text="Enter topic name...",
             height=45,
             width=300,
             font=("Helvetica", 14),
@@ -52,6 +52,18 @@ class HomePage(ctk.CTkFrame):
             border_width=2
         )
         self.entry.grid(row=1, column=0, pady=10, padx=20)
+
+        self.position_var = ctk.StringVar(value="For")
+        self.position_dropdown = ctk.CTkOptionMenu(
+        self.content_frame,
+        values=["For", "Against"],
+        variable=self.position_var,
+        width=150,
+        height=35,
+        corner_radius=10,
+        font=("Helvetica", 14)
+        )
+        self.position_dropdown.grid(row=2, column=0, pady=10, padx=20)
         
         self.start_button = ctk.CTkButton(
             self.content_frame,
@@ -64,7 +76,7 @@ class HomePage(ctk.CTkFrame):
             hover_color=["#2d5a27", "#2d5a27"],
             command=self.start_debate
         )
-        self.start_button.grid(row=2, column=0, pady=(10, 20), padx=20)
+        self.start_button.grid(row=3, column=0, pady=(10, 20), padx=20)
 
         self.entry.bind("<Return>", lambda event: self.start_debate())
 
@@ -75,11 +87,11 @@ class HomePage(ctk.CTkFrame):
             font=("Helvetica", 20, "bold"),
             text_color=["#ffffff", "#ffffff"]
         )
-        self.topic_label.grid(row=3, column=0, pady=(10, 5))
+        self.topic_label.grid(row=4, column=0, pady=(10, 5))
 
         # Frame for Topic Tiles (without scrolling, all topics visible)
         self.topic_frame = ctk.CTkFrame(self.content_frame, fg_color=["#242424", "#242424"])
-        self.topic_frame.grid(row=4, column=0, pady=(5, 20), padx=20, sticky="nsew")
+        self.topic_frame.grid(row=5, column=0, pady=(5, 20), padx=20, sticky="nsew")
         self.topic_frame.grid_columnconfigure(0, weight=1)
 
         self.create_topic_tiles()
@@ -106,5 +118,6 @@ class HomePage(ctk.CTkFrame):
     def start_debate(self):
         """Start debate with manually entered opponent"""
         opponent = self.entry.get() or "AI Opponent"
-        self.controller.show_frame(DebatePage, opponent)
+        position = self.position_var.get()
+        self.controller.show_frame(DebatePage, opponent, position)
     

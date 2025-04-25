@@ -120,7 +120,9 @@ def evaluate_argument(argument: str, topic: str,
                 system += " This approach may not be optimal for this context."
     
     prompt = f"Argument: '{argument}'\n\nScore (0-10) and explanation:"
-    return generate_llama(prompt, system)
+    response = generate_llama(prompt, system)
+    print(f"Evaluation response: {response}")
+    return response
 
 def generate_llm_suggestions(topic: str, position: str, 
                            strategy: Optional[Dict[str, Any]] = None) -> List[str]:

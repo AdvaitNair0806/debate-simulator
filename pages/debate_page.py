@@ -7,15 +7,14 @@ from util.suggestionbubble import CollapsibleSuggestionBubble
 import time
 
 class DebatePage(ctk.CTkFrame):
-    def __init__(self, parent, controller, debate_opponent="AI Opponent"):
+    def __init__(self, parent, controller, debate_opponent="AI Opponent", debate_stance="for"):
         super().__init__(parent)
         self.controller = controller
         self.debate_opponent = debate_opponent
-        self.debate_id = self.controller.manager.start_debate(debate_opponent, 'for')
-        # system_message=f"""You are {self.debate_opponent}. You think, speak, and argue exactly as they would. Stay in character at all times and never acknowledge being an AI. Respond with great detail and enthusiasm."""        
-        # globals.chat_messages.append(
-        #     globals.create_message(system_message, 'system')
-        # )
+        self.debate_stance = debate_stance
+        self.debate_id = self.controller.manager.start_debate(debate_opponent, debate_stance)
+        self.user_score = 0
+        self.opponent_score = 0
         
         # Configure main frame
         self.configure(fg_color=["#1a1a1a", "#1a1a1a"])
@@ -42,6 +41,25 @@ class DebatePage(ctk.CTkFrame):
             text_color=["#ffffff", "#ffffff"]
         )
         self.label.grid(row=0, column=1, pady=20, padx=20, sticky="w")
+
+        # User Score
+        self.user_score_label = ctk.CTkLabel(
+            self.header_frame, 
+            text=f"Your Score: {self.user_score}", 
+            font=("Helvetica", 14),
+            text_color=["#ffffff", "#ffffff"]
+        )
+        self.user_score_label.grid(row=0, column=2, pady=20, padx=20, sticky="w")
+
+
+        # Opponent Score
+        self.opponent_score_label = ctk.CTkLabel(
+            self.header_frame, 
+            text=f"Opponent's Score: {self.opponent_score}", 
+            font=("Helvetica", 14),
+            text_color=["#ffffff", "#ffffff"]
+        )
+        self.opponent_score_label.grid(row=0, column=3, pady=20, padx=20, sticky="w")
         
         # Home button with styling
         self.back_button = ctk.CTkButton(
@@ -55,7 +73,7 @@ class DebatePage(ctk.CTkFrame):
             hover_color=["#2d5a27", "#2d5a27"],
             command=self.go_to_home
         )
-        self.back_button.grid(row=0, column=2, pady=20, padx=20, sticky="e")
+        self.back_button.grid(row=0, column=4, pady=20, padx=20, sticky="e")
         
         # Chat area
         self.chat_frame = ctk.CTkScrollableFrame(
@@ -139,6 +157,10 @@ class DebatePage(ctk.CTkFrame):
         suggestion_bubble.update_text(self.response["evaluation_feedback"])
         end_time = time.time()
         time_taken = round(end_time - start_time, 2)
+        self.user_score += (self.response["score"] * 100)
+        self.opponent_score += (self.response["ai_score"] * 100)
+        self.user_score_label.configure(text=f"Your Score: {self.user_score}")
+        self.opponent_score_label.configure(text=f"Opponent's Score: {self.opponent_score}")
 
         thought_time_label = ctk.CTkLabel(
             self.chat_frame, 

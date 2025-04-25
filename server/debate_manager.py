@@ -52,7 +52,9 @@ class DebateManager:
 
     def start_debate(self, topic: str, user_position: str) -> str:
         """Initialize a new debate with integrated GA and AS components"""
+        user_position = user_position.lower()
         debate_id = str(random.randint(1000, 9999))
+        print(user_position)
         
         # Create diverse initial population for GA
         initial_fitness = [random.uniform(0.4, 0.6) for _ in range(self.strategy_evolver.population_size)]
