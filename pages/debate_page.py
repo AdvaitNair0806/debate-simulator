@@ -84,7 +84,8 @@ class DebatePage(ctk.CTkFrame):
             corner_radius=10,
             fg_color=["#333333", "#333333"],
             border_color=["#3a7a33", "#3a7a33"],
-            border_width=2
+            border_width=2,
+            text_color="white"
         )
         self.entry.grid(row=0, column=0, pady=15, padx=(15, 10), sticky="ew")
         
@@ -113,7 +114,7 @@ class DebatePage(ctk.CTkFrame):
         user_text = self.entry.get()
         if user_text:
             chat_bubble = ChatBubble(self.chat_frame, user_text, align="right")
-            chat_bubble.pack(anchor="e", fill="y", expand=True, padx=10, pady=5)
+            chat_bubble.pack(anchor="e", fill="y", expand=False, padx=0, pady=0)
             self.entry.delete(0, ctk.END)
             # globals.ask(user_text)
             threading.Thread(target=self.fetch_opponent_response, args=(user_text,), daemon=True).start()
@@ -126,9 +127,9 @@ class DebatePage(ctk.CTkFrame):
     async def opponent_response(self, user_text):
         start_time = time.time()
         chat_bubble = ChatBubble(self.chat_frame, f"Thinking of a response...", align="left")
-        chat_bubble.pack(anchor="w", fill="y", expand=True, padx=10, pady=5)
+        chat_bubble.pack(anchor="w", fill="y", expand=False, padx=0, pady=0)
         suggestion_bubble = CollapsibleSuggestionBubble(self.chat_frame, "Analyzing argument...")
-        suggestion_bubble.pack(anchor="w", fill="y", expand=True, padx=10, pady=5)
+        suggestion_bubble.pack(anchor="w", fill="y", expand=False, padx=0, pady=0)
 
         print("Thinking...")
         self.response = self.controller.manager.process_argument(self.debate_id, user_text)

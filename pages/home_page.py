@@ -7,7 +7,8 @@ class HomePage(ctk.CTkFrame):
         self.controller = controller
 
         # Get suggested topics
-        self.topics = self.controller.manager.get_topics()  
+        self.topics = self.controller.manager.get_topics()
+        self.topics = self.topics[:5] if len(self.topics) >= 5 else self.topics + ["Topic " + str(i+1) for i in range(5 - len(self.topics))]  
         
         self.configure(fg_color=["#1a1a1a", "#1a1a1a"])
         self.grid_columnconfigure(0, weight=1)
@@ -76,9 +77,10 @@ class HomePage(ctk.CTkFrame):
         )
         self.topic_label.grid(row=3, column=0, pady=(10, 5))
 
-        # Scrollable Frame for Topic Tiles
-        self.topic_scroll_frame = ctk.CTkScrollableFrame(self.content_frame, height=200, fg_color=["#242424", "#242424"])
-        self.topic_scroll_frame.grid(row=4, column=0, pady=(5, 20), padx=20, sticky="nsew")
+        # Frame for Topic Tiles (without scrolling, all topics visible)
+        self.topic_frame = ctk.CTkFrame(self.content_frame, fg_color=["#242424", "#242424"])
+        self.topic_frame.grid(row=4, column=0, pady=(5, 20), padx=20, sticky="nsew")
+        self.topic_frame.grid_columnconfigure(0, weight=1)
 
         self.create_topic_tiles()
 
@@ -86,16 +88,16 @@ class HomePage(ctk.CTkFrame):
         """Dynamically generate clickable topic tiles"""
         for i, topic in enumerate(self.topics):
             tile = ctk.CTkButton(
-                self.topic_scroll_frame, 
+                self.topic_frame, 
                 text=topic, 
-                width=350, 
-                height=50,
-                font=("Helvetica", 14),
+                width=200,  # Further reduced width
+                height=35,  # Further reduced height
+                font=("Helvetica", 12),  # Adjusted font size
                 fg_color=["#444444", "#444444"],  
                 hover_color=["#666666", "#666666"],
                 command=lambda t=topic: self.start_debate_with_topic(t)
             )
-            tile.grid(row=i // 2, column=i % 2, padx=10, pady=10, sticky="ew")
+            tile.grid(row=i, column=0, padx=20, pady=5, sticky="ew")  # Adjusted padding for spacing
 
     def start_debate_with_topic(self, topic):
         """Start debate with the selected topic"""
@@ -105,3 +107,4 @@ class HomePage(ctk.CTkFrame):
         """Start debate with manually entered opponent"""
         opponent = self.entry.get() or "AI Opponent"
         self.controller.show_frame(DebatePage, opponent)
+    
